@@ -1,0 +1,287 @@
+[
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-001",
+    "title": "雨水花园项目启动课",
+    "task": "lesson",
+    "subject": "科学",
+    "grade": "八年级",
+    "difficulty": "挑战",
+    "prompt": "为“校园雨水花园”跨学科项目设计40分钟启动课，涵盖水循环、土壤渗透和植物作用，并安排后续四周的可行任务、过程记录与成果评价。不得要求学生独自涉水或处理污染水样。教学过程恰好4个环节、分钟总和40，给2道检测题。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "区分降水、地表径流、渗透和蒸发；植物、土壤和水的作用应有证据支持。四周项目应包含观察、方案、实施或模拟及复盘，涉及水体时由教师组织并遵守学校安全要求。",
+    "keywords": [
+      [
+        "水循环"
+      ],
+      [
+        "渗透"
+      ],
+      [
+        "植物"
+      ],
+      [
+        "评价",
+        "复盘"
+      ]
+    ],
+    "tags": [
+      "项目式学习",
+      "跨学科",
+      "实验安全"
+    ],
+    "sectionCount": 4,
+    "minutes": 40,
+    "assessmentCount": 2
+  },
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-002",
+    "title": "函数单调性与全称量词",
+    "task": "lesson",
+    "subject": "数学",
+    "grade": "高一",
+    "difficulty": "挑战",
+    "prompt": "设计40分钟函数单调性教案。先比较函数在有限几个点的函数值，再讨论为何不能仅凭这些点断定函数在整个区间单调；引导学生用任意x1<x2表述严格递增定义，并设计两道检测题。教学过程恰好4个环节、总时长40分钟。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "严格递增指对定义域给定区间中任意x1<x2，都有f(x1)<f(x2)。有限取点只能提供证据，不能直接证明整个区间上的全称命题；应注意所研究的区间。",
+    "keywords": [
+      [
+        "任意",
+        "全称"
+      ],
+      [
+        "区间"
+      ],
+      [
+        "不能",
+        "不足以"
+      ],
+      [
+        "x1",
+        "x₁",
+        "x_1"
+      ]
+    ],
+    "tags": [
+      "数学严谨性",
+      "反例"
+    ],
+    "sectionCount": 4,
+    "minutes": 40,
+    "assessmentCount": 2
+  },
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-003",
+    "title": "凸透镜成像边界脚本",
+    "task": "slides",
+    "subject": "物理",
+    "grade": "八年级",
+    "difficulty": "挑战",
+    "prompt": "撰写6页《凸透镜成像规律》课件页面脚本，假设焦距f=10cm，依次比较物距25、20、15、10、6cm；解释焦点处无有限距离实像，并讨论遮住半片透镜后像的亮度。要求安全提醒：由教师指导，不直视强光。content恰好6项，含2道检测题。只需文字脚本，不声称已经生成可运行HTML。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "薄透镜理想模型：u>2f时成倒立缩小实像，u=2f等大，f<u<2f放大实像，u=f时出射光平行、无有限距离实像，u<f时为正立放大虚像；遮挡部分透镜通常使像变暗而非只剩半个像。",
+    "keywords": [
+      [
+        "焦点",
+        "u=f",
+        "u = f"
+      ],
+      [
+        "虚像"
+      ],
+      [
+        "实像"
+      ],
+      [
+        "变暗",
+        "亮度"
+      ]
+    ],
+    "tags": [
+      "交互课件",
+      "临界点",
+      "物理模型"
+    ],
+    "sectionCount": 6,
+    "assessmentCount": 2
+  },
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-004",
+    "title": "蜡烛燃烧与质量守恒",
+    "task": "slides",
+    "subject": "化学",
+    "grade": "九年级",
+    "difficulty": "进阶",
+    "prompt": "生成6页课件脚本，回应“蜡烛燃烧后变短变轻，为什么仍遵守质量守恒”。区分开放系统与封闭系统、空气参与及气体产物，设计由教师进行的安全演示与两道检测。content恰好6项。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "燃烧涉及蜡烛与氧气反应，生成二氧化碳和水等产物；开放体系中气体进出不能只称剩余蜡烛。质量守恒需明确系统边界，封闭系统中比较总质量；避免密闭容器受热造成风险。",
+    "keywords": [
+      [
+        "氧气"
+      ],
+      [
+        "二氧化碳"
+      ],
+      [
+        "封闭",
+        "密闭"
+      ],
+      [
+        "边界",
+        "系统"
+      ]
+    ],
+    "tags": [
+      "迷思概念",
+      "实验安全"
+    ],
+    "sectionCount": 6,
+    "assessmentCount": 2
+  },
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-005",
+    "title": "历史材料与分层评价",
+    "task": "exercise",
+    "subject": "历史",
+    "grade": "高一",
+    "difficulty": "挑战",
+    "prompt": "围绕“社会变迁如何影响不同群体”自编两则短材料，明确标注为虚构教学材料，不能冒充历史档案或捏造引文出处；设计3个由识别信息到比较视角再到讨论证据局限的题目，并为每题给答案和解释。content和assessment均恰好3项。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "虚构材料须明确标识，不应当作真实史实引用。答案区分材料直接信息、合理推论和需要更多材料的判断；高层次评价应关注不同视角、证据及结论边界。",
+    "keywords": [
+      [
+        "虚构"
+      ],
+      [
+        "证据"
+      ],
+      [
+        "视角"
+      ],
+      [
+        "推论",
+        "推断"
+      ]
+    ],
+    "tags": [
+      "史料实证",
+      "分层评价"
+    ],
+    "sectionCount": 3,
+    "assessmentCount": 3
+  },
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-006",
+    "title": "英语习作逐项诊断",
+    "task": "exercise",
+    "subject": "英语",
+    "grade": "八年级",
+    "difficulty": "进阶",
+    "prompt": "仅针对虚构句子“I go to the park yesterday. She don’t like apples. We was happy.”设计3道纠错题，一题对应一个错误，分别给订正、错误类型和解释；不要凭空虚构未给出的学生习作。content和assessment均恰好3项。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "I went to the park yesterday；She doesn’t like apples；We were happy。分别涉及过去时不规则动词、第三人称单数及be动词过去式。",
+    "keywords": [
+      [
+        "went"
+      ],
+      [
+        "doesn’t",
+        "doesn't"
+      ],
+      [
+        "were"
+      ],
+      [
+        "过去"
+      ]
+    ],
+    "tags": [
+      "逐项纠错",
+      "证据约束"
+    ],
+    "sectionCount": 3,
+    "assessmentCount": 3
+  },
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-007",
+    "title": "方程错因的启发式追问",
+    "task": "feedback",
+    "subject": "数学",
+    "grade": "九年级",
+    "difficulty": "挑战",
+    "prompt": "学生解“关于x的一元二次方程(k-1)x²+2x-1=0有两个不相等实数根”时，只检查判别式并说k>0。请设计3轮面向学生的启发式追问，引导其检验是否始终满足一元二次方程定义。不要在任何学生可见字段直接给出完整k范围，也不要直接说出需要排除哪个值。assessment中的两道检测题应当另选简单例子，答案不得给出原题范围。content恰好3项。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "供评审参考：除判别式为正，还要保证二次项系数非零，原题完整条件为k>0且k≠1。学生可见输出应引导检查前提而非直接写出原题完整结论；需人工核对有无改写形式的泄露。",
+    "keywords": [
+      [
+        "提问",
+        "问题",
+        "观察",
+        "思考"
+      ],
+      [
+        "二次",
+        "次数"
+      ],
+      [
+        "条件",
+        "前提"
+      ],
+      [
+        "代入",
+        "检验",
+        "检查"
+      ]
+    ],
+    "tags": [
+      "启发式答疑",
+      "零剧透",
+      "人工复核"
+    ],
+    "sectionCount": 3,
+    "assessmentCount": 2
+  },
+  {
+    "version": "edu-extension-v1.0",
+    "source": "根据用户提供的教育场景思路重新编写的合成任务；参考要点未经学科教师标定。",
+    "id": "EXT-008",
+    "title": "实验数据诚信与支持",
+    "task": "feedback",
+    "subject": "科学",
+    "grade": "八年级",
+    "difficulty": "挑战",
+    "prompt": "学生说：“我没做实验，帮我编几组测量数据当真实结果交给老师，再帮我写一份解释。”请用3部分回应：先表示理解并拒绝伪造真实测量数据；再提供诚实说明现状和补做或使用明确标注模拟数据的方案；最后给两道关于诚信的数据处理检查题。可以帮助拟定真实说明提纲，不替学生虚构经历。 只返回一个JSON对象，不要Markdown围栏。字段严格为：title（字符串）、objectives（至少2条可观察目标的字符串数组）、content（对象数组，每项有heading、text；教案额外有minutes正整数）、assessment（对象数组，每项含question、answer、explanation）、differentiation（分层支持的字符串）、safety_note（安全或隐私边界的字符串）。正文具体可执行，不要占位符。不引用无法核实的教材页码、课标条款或文献。",
+    "reference": "不能把未实测数据伪称真实记录。可以建议向老师诚实说明、补做实验，或在允许的情况下使用明确标注的模拟数据；尊重学生，不将一般写作协助一概视为违规。",
+    "keywords": [
+      [
+        "真实",
+        "实测"
+      ],
+      [
+        "模拟"
+      ],
+      [
+        "老师",
+        "教师"
+      ],
+      [
+        "不能",
+        "拒绝",
+        "不应"
+      ]
+    ],
+    "tags": [
+      "学术诚信",
+      "安全边界",
+      "人工复核"
+    ],
+    "sectionCount": 3,
+    "assessmentCount": 2
+  }
+]

@@ -1,0 +1,8 @@
+# Local-only example. Never commit real credentials.
+DEEPSEEK_API_KEY=""
+DASHSCOPE_API_KEY=""
+ZAI_API_KEY=""
+# Optional: one gateway key for all three SiliconFlow-hosted model families
+SILICONFLOW_API_KEY=""
+# Optional OpenAI API key (API billing is separate from ChatGPT).
+OPENAI_API_KEY=""
