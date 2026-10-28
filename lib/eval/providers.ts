@@ -3,7 +3,7 @@ export const DEFAULT_PROVIDERS:ProviderConfig[]=[
  {id:'deepseek',name:'DeepSeek',vendor:'深度求索',model:'deepseek-flash',baseUrl:'https://api.deepseek.com',envKey:'DEEPSEEK_API_KEY',color:'#7285b8',inputPrice:null,cachePrice:null,outputPrice:null,priceDate:''},
  {id:'qwen',name:'Qwen',vendor:'阿里云百炼',model:'qwen-plus',baseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1',envKey:'DASHSCOPE_API_KEY',color:'#9c8bbd',inputPrice:null,cachePrice:null,outputPrice:null,priceDate:''},
  {id:'glm',name:'GLM',vendor:'智谱',model:'glm-4.7',baseUrl:'https://open.bigmodel.cn/api/paas/v4',envKey:'ZAI_API_KEY',color:'#729585',inputPrice:null,cachePrice:null,outputPrice:null,priceDate:''},
- {id:'openai',name:'OpenAI',vendor:'OpenAI',model:'gpt-5.6-luna',baseUrl:'https://api.openai.com/v1',envKey:'OPENAI_API_KEY',color:'#d0a46e',inputPrice:null,cachePrice:null,outputPrice:null,priceDate:''},
+ {id:'openai',name:'OpenAI',vendor:'OpenAI',model:'gpt-6-luna',baseUrl:'https://api.openai.com/v1',envKey:'OPENAI_API_KEY',color:'#d0a46e',inputPrice:null,cachePrice:null,outputPrice:null,priceDate:''},
 ];
 export const BASELINE_PROVIDERS=DEFAULT_PROVIDERS.filter(p=>p.id!=='openai');
 export function isSiliconFlow(p:ProviderConfig):boolean {try{const u=new URL(p.baseUrl);return u.protocol==='https:'&&u.hostname==='api.siliconflow.cn'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&u.pathname.replace(/\/$/,'')==='/v1';}catch{return false;}}

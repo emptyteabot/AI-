@@ -35,7 +35,7 @@ npm run dev
 | DeepSeek | deepseek-flash | DEEPSEEK_API_KEY | https://api.deepseek.com |
 | 阿里云百炼 | qwen-plus | DASHSCOPE_API_KEY | https://dashscope.aliyuncs.com/compatible-mode/v1 |
 | 智谱 | glm-4.7 | ZAI_API_KEY | https://open.bigmodel.cn/api/paas/v4 |
-| OpenAI | gpt-5.6-luna | OPENAI_API_KEY | https://api.openai.com/v1 |
+| OpenAI | gpt-6-luna | OPENAI_API_KEY | https://api.openai.com/v1 |
 
 OpenAI API 和 ChatGPT 对话分别使用账户/计费；当前对话不能作为批量调用的 API。OpenAI 预设模型与当前会话模型不保证相同。接口文档核对日期：2026-10-28。阿里支持对应地域的 WorkspaceId 专属域名。Key 与地域需要匹配。GLM 5.3 强制思考，不适用于本实验默认非思考协议；智谱标准 API Key 与 Coding Plan Key 不应混用。模型与价格会变化，正式运行前先测试连接。
 
@@ -145,7 +145,7 @@ Windows PowerShell 设置变量：`$env:LESSONBENCH_URL='http://localhost:5173'`
 - MiniAppBench interactive evaluation: https://arxiv.org/abs/2603.09652
 - ArtifactsBench visual-interactive evaluation: https://arxiv.org/abs/2507.04952
 - 硅基流动 API: https://docs.siliconflow.cn/
-- OpenAI API 模型: https://developers.openai.com/api/docs/models/gpt-5.6-luna
+- OpenAI API 模型: https://developers.openai.com/api/docs/models/gpt-6-luna
 - DeepSeek API: https://api-docs.deepseek.com/
 - Qwen Chat API: https://help.aliyun.com/zh/model-studio/qwen-api-via-openai-chat-completions
 - GLM OpenAI兼容: https://docs.bigmodel.cn/cn/guide/develop/openai/introduction
