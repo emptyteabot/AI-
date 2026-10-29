@@ -43,6 +43,12 @@ npm run dev
 
 在“模型接入”点击“使用 B.AI 预设”，输入一个 B.AI Key 后可读取账户可用模型列表，再分别测试连接。候选模型为 `DeepSeek-V4.1-Flash`、`qwen3.8-flash`、`glm-5.3-flashx`；实际 ID、可用性、费用以 B.AI 账户与用量页面为准。B.AI 是一家聚合接口服务，报告需区分模型开发来源和实际 API 提供者。GLM-5.3-FlashX 不支持关闭思考；不同模型的推理和温度参数可能不同，不应描述为严格同一推理配置。平台发票、余额和大陆网络连通性未验证。CLI 可在本地使用 `BAI_API_KEY`。
 
+## OriginCoder 聚合接口
+
+点击“使用 OriginCoder 预设”，为 DeepSeek、OpenAI 和 Grok 分别填写其账户分组密钥，保存配置后测试。默认 ID 为 `deepseek-v4.1-flash`、`gpt-6.1-sol`、`grok-4.7`，实际可用性以账户和接口为准。该接口是第三方代理，模型名称由平台声明，不能独立验证最终模型身份；不同模型分组可能需要不同 Key。每次请求最多尝试一次，以减少重复计费。其请求不发送 temperature，接口参数和模型版本可能不同，不构成严格同参对比。价格与账单以平台实际信息为准。
+
+本地 CLI 可分别使用 `ORIGINCODER_DEEPSEEK_API_KEY`、`ORIGINCODER_OPENAI_API_KEY`、`ORIGINCODER_XAI_API_KEY`；密钥不应写进源码或提交到 GitHub。
+
 ## 硅基流动低成本接入
 
 在“模型接入”点击“使用硅基流动预设”，填写一个该平台 API Key（同步到 DeepSeek、Qwen、GLM 三个模型通道），保存配置后分别测试。默认使用 `deepseek-ai/DeepSeek-V3.2`、`Qwen/Qwen3.5-4B` 与 `THUDM/GLM-4-9B-0414`。它们由一个推理平台托管，模型开发来源不同；可用性、免费额度和价格以平台实际页面为准，当前未真实连通测试。切换预设会清除页面中的密钥。CLI 可使用 `SILICONFLOW_API_KEY`。
