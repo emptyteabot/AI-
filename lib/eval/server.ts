@@ -5,7 +5,7 @@ import {env} from 'lessonbench-runtime';
 import {z} from 'zod';
 import {BENCHMARK,BENCHMARK_VERSION,demoAnswer} from './benchmark.ts';
 import {EXTENSION} from './extension.ts';
-import {PUBLIC_RUN_ID,PUBLIC_REAL_RUN_ID,PUBLIC_RUN_IDS} from './access.ts';
+import {PUBLIC_RUN_ID,PUBLIC_REAL_RUN_ID,PUBLIC_ARCHIVE_RUN_ID,PUBLIC_RUN_IDS} from './access.ts';
 import publicReal from './public-real-eval.json';
 import {DEFAULT_PROVIDERS,BASELINE_PROVIDERS,callProvider,ProviderError,validBase,isSiliconFlow,isBAI,isOriginCoder} from './providers.ts';
 import {evaluateRules,digest,mean,percentile,wilson,RUBRIC_VERSION,weightedScore} from './scoring.ts';
@@ -120,11 +120,11 @@ export async function submitBlind(id:string,reviewer:string,input:any,runId?:str
  const v=z.object({vote:z.enum(['A','B','tie','both_bad']),ratings:z.object({A:scores,B:scores}),comment:z.string().trim().min(5).max(2000)}).parse(input);
  const result=runId?await stmt('UPDATE reviews SET vote=?,ratings=?,comment=?,submitted_at=? WHERE id=? AND reviewer=? AND submitted_at IS NULL AND run_id=?',v.vote,JSON.stringify(v.ratings),v.comment,now(),id,reviewer,runId).run():await stmt('UPDATE reviews SET vote=?,ratings=?,comment=?,submitted_at=? WHERE id=? AND reviewer=? AND submitted_at IS NULL',v.vote,JSON.stringify(v.ratings),v.comment,now(),id,reviewer).run();if(!result.meta.changes)throw new HttpError(409,'该任务已提交或不属于当前评审会话');return {saved:true};
 }
-export async function reviewRuns(reviewer:string,workspace?:string,sharedRun?:string){const sql="SELECT r.id,r.name,r.mode,COUNT(DISTINCT s.id) as ready,(SELECT COUNT(*) FROM reviews v WHERE v.run_id=r.id AND v.reviewer=? AND v.submitted_at IS NOT NULL) as reviewed FROM runs r JOIN results s ON s.run_id=r.id AND s.status='success'";if(!workspace)return rows(sql+' GROUP BY r.id ORDER BY r.created_at DESC',reviewer);return rows(sql+" WHERE (r.id=? OR r.id=? OR r.id=? OR EXISTS(SELECT 1 FROM settings owner WHERE owner.id='runowner:'||r.id AND owner.data=?)) GROUP BY r.id ORDER BY r.created_at DESC",reviewer,PUBLIC_RUN_ID,PUBLIC_REAL_RUN_ID,sharedRun||'',workspace);}
+export async function reviewRuns(reviewer:string,workspace?:string,sharedRun?:string){const sql="SELECT r.id,r.name,r.mode,COUNT(DISTINCT s.id) as ready,(SELECT COUNT(*) FROM reviews v WHERE v.run_id=r.id AND v.reviewer=? AND v.submitted_at IS NOT NULL) as reviewed FROM runs r JOIN results s ON s.run_id=r.id AND s.status='success'";if(!workspace)return rows(sql+' GROUP BY r.id ORDER BY r.created_at DESC',reviewer);return rows(sql+" WHERE (r.id=? OR r.id=? OR r.id=? OR r.id=? OR EXISTS(SELECT 1 FROM settings owner WHERE owner.id='runowner:'||r.id AND owner.data=?)) GROUP BY r.id ORDER BY r.created_at DESC",reviewer,PUBLIC_RUN_ID,PUBLIC_ARCHIVE_RUN_ID,PUBLIC_REAL_RUN_ID,sharedRun||'',workspace);}
 
 export async function dashboard(workspace?:string){
  const sql="SELECT r.*,COUNT(s.id) as total,SUM(CASE WHEN s.status IN ('success','failed','cancelled') THEN 1 ELSE 0 END) as completed FROM runs r LEFT JOIN results s ON s.run_id=r.id";
- const runs=workspace?await rows(sql+" WHERE r.id IN (?,?) OR EXISTS(SELECT 1 FROM settings owner WHERE owner.id='runowner:'||r.id AND owner.data=?) GROUP BY r.id ORDER BY r.created_at DESC LIMIT 40",PUBLIC_RUN_ID,PUBLIC_REAL_RUN_ID,workspace):await rows(sql+' GROUP BY r.id ORDER BY r.created_at DESC LIMIT 40');
+ const runs=workspace?await rows(sql+" WHERE r.id IN (?,?,?) OR EXISTS(SELECT 1 FROM settings owner WHERE owner.id='runowner:'||r.id AND owner.data=?) GROUP BY r.id ORDER BY r.created_at DESC LIMIT 40",PUBLIC_RUN_ID,PUBLIC_ARCHIVE_RUN_ID,PUBLIC_REAL_RUN_ID,workspace):await rows(sql+' GROUP BY r.id ORDER BY r.created_at DESC LIMIT 40');
  const providers=await providerSettings(workspace);
  return {cases:await allCases(workspace),runs:runs.map(packRun),providers:providers.map(p=>({...p,configured:!!keyFor(p)})),latest:runs.length?(workspace&&PUBLIC_RUN_IDS.includes(runs[0].id)?await publicRunDetail(runs[0].id):await runDetail(runs[0].id)):null};
 }
