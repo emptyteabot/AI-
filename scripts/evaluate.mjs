@@ -5,7 +5,7 @@ const endpoint=new URL(base);if(endpoint.protocol!=='https:'&&!['localhost','127
 const live=args.includes('--live'),judge=live&&args.includes('--judge');
 const keys={};
 const selectedProviders=arg('--providers','deepseek,qwen,glm').split(',').map(x=>x.trim());
-if(new Set(selectedProviders).size!==selectedProviders.length||selectedProviders.length<2||selectedProviders.some(x=>!['deepseek','qwen','glm','openai','xai'].includes(x)))throw new Error('Choose 2–5 unique providers from deepseek,qwen,glm,openai,xai.');
+if(new Set(selectedProviders).size!==selectedProviders.length||selectedProviders.length<2||selectedProviders.some(x=>!['deepseek','qwen','glm','openai','xai','anthropic'].includes(x)))throw new Error('Choose 2–6 unique providers from deepseek,qwen,glm,openai,xai,anthropic.');
 const auth=process.env.LESSONBENCH_SERVICE_TOKEN;
 async function call(p,body){const r=await fetch(base+'/api/'+p,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json',...(auth?{'OAI-Sites-Authorization':'Bearer '+auth}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(230000)});const data=await r.json();if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data;}
 await call('bootstrap',{});

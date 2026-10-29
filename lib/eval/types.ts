@@ -1,4 +1,4 @@
-export type ProviderId="deepseek"|"qwen"|"glm"|"openai"|"xai";
+export type ProviderId="deepseek"|"qwen"|"glm"|"openai"|"xai"|"anthropic";
 export type TaskType="lesson"|"slides"|"exercise"|"feedback";
 export interface BenchmarkCase {id:string;title:string;task:TaskType;subject:string;grade:string;difficulty:"基础"|"进阶"|"挑战";prompt:string;reference:string;keywords:string[][];tags:string[];sectionCount:number;minutes?:number;assessmentCount:number;version:string;source:string;}
 export interface ProviderConfig {id:ProviderId;name:string;vendor:string;model:string;baseUrl:string;envKey:string;color:string;inputPrice:number|null;cachePrice:number|null;outputPrice:number|null;priceDate:string;}

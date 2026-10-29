@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import * as s from '@/lib/eval/server';
 import {env} from 'lessonbench-runtime';
-import {PUBLIC_RUN_ID,workspaceCookie} from '@/lib/eval/access';
+import {PUBLIC_RUN_IDS,workspaceCookie} from '@/lib/eval/access';
 export const dynamic='force-dynamic';
 async function handle(request:Request){
  const url=new URL(request.url),path=url.pathname.replace(/^\/api\//,'').split('/');
@@ -19,7 +19,7 @@ async function handle(request:Request){
  const workspace=publicMode?reviewer:undefined;
  if(path[0]==='access'&&request.method==='GET')return json({publicMode,anonymous:publicMode});
  if(workspace&&path[0]==='runs'&&path[1]){
-  const readBaseline=request.method==='GET'&&path[1]===PUBLIC_RUN_ID&&path[2]!=='share';
+  const readBaseline=request.method==='GET'&&PUBLIC_RUN_IDS.includes(path[1])&&path[2]!=='share';
   if(!readBaseline&&!await s.ownsRun(path[1],workspace))throw new s.HttpError(403,'该实验不属于当前浏览器工作区');
  }
  if(path[0]==='health')return json({ok:true,app:'LessonBench',version:'1.0.0'});
@@ -35,13 +35,14 @@ async function handle(request:Request){
    if(path[0]==='blind'&&path[1]==='next'){if(workspace&&!await s.canReviewRun(data.runId,workspace,data.shareToken))throw new s.HttpError(403,'盲评链接无效或已失效');return json(await s.nextBlind(data.runId,reviewer));}
    if(path[0]==='blind'&&path[1]){const runId=await s.reviewAssignmentRun(path[1],reviewer);if(!runId)throw new s.HttpError(409,'该任务不属于当前评审会话');if(workspace&&!await s.canReviewRun(runId,workspace,data.shareToken))throw new s.HttpError(403,'盲评链接无效或已失效');return json(await s.submitBlind(path[1],reviewer,data,runId));}
   }else if(request.method==='GET'){
-   if(path[0]==='shared-report'){const id=url.searchParams.get('run')||'',token=url.searchParams.get('share')||'';if(!await s.canViewReport(id,token))throw new s.HttpError(403,'报告链接无效或已失效');const detail=id===PUBLIC_RUN_ID?await s.publicRunDetail():await s.runDetail(id);return json({run:detail.run,summary:detail.summary});}
+   if(path[0]==='shared-report'||path[0]==='review-runs')await s.bootstrap();
+   if(path[0]==='shared-report'){const id=url.searchParams.get('run')||'',token=url.searchParams.get('share')||'';if(!await s.canViewReport(id,token))throw new s.HttpError(403,'报告链接无效或已失效');const detail=PUBLIC_RUN_IDS.includes(id)?await s.publicRunDetail(id):await s.runDetail(id);return json({run:detail.run,summary:detail.summary});}
    if(path[0]==='review-runs'){const runId=url.searchParams.get('run')||'',token=url.searchParams.get('share')||'';const shared=workspace&&runId&&await s.canReviewRun(runId,workspace,token)?runId:undefined;return json(await s.reviewRuns(reviewer,workspace,shared));}
    if(path[0]==='dashboard')return json({...await s.dashboard(workspace),access:{publicMode,anonymous:publicMode}});
    if(path[0]==='cases')return json(await s.allCases(workspace));
    if(path[0]==='runs'&&path[1]){
     if(path[2]==='share'||path[2]==='report-share'){if(!workspace)throw new s.HttpError(400,'本地运行暂不提供分享链接');return json(path[2]==='share'?await s.reviewShare(path[1],workspace):await s.reportShare(path[1],workspace));}
-    const detail=workspace&&path[1]===PUBLIC_RUN_ID?await s.publicRunDetail():await s.runDetail(path[1]);
+    const detail=workspace&&PUBLIC_RUN_IDS.includes(path[1])?await s.publicRunDetail(path[1]):await s.runDetail(path[1]);
     if(path[2]==='report'){
      const format=url.searchParams.get('format')||'md';let text:string,type:string;
      if(format==='json'){text=JSON.stringify(detail,null,2);type='application/json';}

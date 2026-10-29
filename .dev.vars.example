@@ -9,3 +9,10 @@ OPENAI_API_KEY=""
 
 # Optional: B.AI gateway key; model availability and pricing depend on the account
 BAI_API_KEY=""
+
+# Optional separate OriginCoder group keys. Never commit filled credentials.
+ORIGINCODER_DEEPSEEK_API_KEY=""
+ORIGINCODER_OPENAI_API_KEY=""
+ORIGINCODER_XAI_API_KEY=""
+ORIGINCODER_ANTHROPIC_API_KEY=""
+XAI_API_KEY=""

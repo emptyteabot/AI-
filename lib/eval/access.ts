@@ -1,4 +1,6 @@
 export const PUBLIC_RUN_ID='demo-baseline-v1';
+export const PUBLIC_REAL_RUN_ID='origin-real-v1';
+export const PUBLIC_RUN_IDS=[PUBLIC_RUN_ID,PUBLIC_REAL_RUN_ID];
 
 // This random, HttpOnly cookie is an anonymous workspace capability, not a user account.
 export function workspaceCookie(header:string|null):string|null {
