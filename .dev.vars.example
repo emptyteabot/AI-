@@ -6,3 +6,6 @@ ZAI_API_KEY=""
 SILICONFLOW_API_KEY=""
 # Optional OpenAI API key (API billing is separate from ChatGPT).
 OPENAI_API_KEY=""
+
+# Optional: B.AI gateway key; model availability and pricing depend on the account
+BAI_API_KEY=""

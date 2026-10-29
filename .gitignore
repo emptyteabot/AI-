@@ -44,3 +44,9 @@ yarn-error.log*
 # OS metadata
 .DS_Store
 !.dev.vars.example
+
+# Runtime data and deployment secrets
+/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "lessonbench-runtime": [
+        "./lib/eval/runtime-cloud.ts"
       ]
     },
     "types": [

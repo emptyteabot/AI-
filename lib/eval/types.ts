@@ -6,7 +6,7 @@ export interface RunConfig {caseIds:string[];providers:ProviderConfig[];temperat
 export interface RuleCheck {id:string;label:string;passed:boolean;weight:number;evidence:string}
 export interface RuleResult {score:number;passed:boolean;checks:RuleCheck[];version:string}
 export interface ModelAnswer {title:string;objectives:string[];content:{heading:string;text:string;minutes?:number}[];assessment:{question:string;answer:string;explanation:string}[];differentiation:string;safety_note:string;}
-export interface CallRecord {text:string;model:string;responseId:string|null;finishReason:string|null;usage:{prompt_tokens?:number;completion_tokens?:number;total_tokens?:number;prompt_cache_hit_tokens?:number;prompt_cache_miss_tokens?:number;prompt_tokens_details?:{cached_tokens?:number};[k:string]:unknown}|null;latencyMs:number;attempts:number;estimatedCost:number|null;startedAt:string;endedAt:string;}
+export interface CallRecord {text:string;model:string;responseId:string|null;finishReason:string|null;usage:{prompt_tokens?:number;completion_tokens?:number;total_tokens?:number;prompt_cache_hit_tokens?:number;prompt_cache_miss_tokens?:number;prompt_tokens_details?:{cached_tokens?:number};[k:string]:unknown}|null;latencyMs:number;attempts:number;estimatedCost:number|null;startedAt:string;endedAt:string;requestParameters?:Record<string,unknown>;}
 export const DIMENSIONS=[
 {id:"accuracy",name:"知识准确性",weight:0.3,description:"结论正确、无事实错误，明确知识边界"},
 {id:"pedagogy",name:"教学适切性",weight:0.25,description:"符合学段，有支架与可执行的教学活动"},

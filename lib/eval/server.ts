@@ -1,12 +1,12 @@
 import {blindPayload} from './blind.ts';
 import {summarize} from './report.ts';
 export {reportMarkdown} from './report.ts';
-import {env} from 'cloudflare:workers';
+import {env} from 'lessonbench-runtime';
 import {z} from 'zod';
 import {BENCHMARK,BENCHMARK_VERSION,demoAnswer} from './benchmark.ts';
 import {EXTENSION} from './extension.ts';
 import {PUBLIC_RUN_ID} from './access.ts';
-import {DEFAULT_PROVIDERS,BASELINE_PROVIDERS,callProvider,ProviderError,validBase,isSiliconFlow} from './providers.ts';
+import {DEFAULT_PROVIDERS,BASELINE_PROVIDERS,callProvider,ProviderError,validBase,isSiliconFlow,isBAI} from './providers.ts';
 import {evaluateRules,digest,mean,percentile,wilson,RUBRIC_VERSION,weightedScore} from './scoring.ts';
 import {judgeAnswer} from './judge.ts';
 import {DIMENSIONS,TASKS,type BenchmarkCase,type ProviderConfig,type RunConfig} from './types.ts';
@@ -18,8 +18,8 @@ async function rows(sql:string,...args:any[]):Promise<any[]>{return (await stmt(
 async function first(sql:string,...args:any[]):Promise<any>{return stmt(sql,...args).first();}
 const j=(v:any)=>typeof v==='string'?JSON.parse(v):v;
 export class HttpError extends Error{constructor(public status:number,message:string){super(message);}}
-export async function providerSettings():Promise<ProviderConfig[]>{const row=await first("SELECT data FROM settings WHERE id='providers'");const saved=row?j(row.data):[];return DEFAULT_PROVIDERS.map(p=>({...p,...saved.find((v:ProviderConfig)=>v.id===p.id)}));}
-function keyFor(p:ProviderConfig,keys:Record<string,string>={}){return keys[p.id]||(env as unknown as Record<string,string>)[isSiliconFlow(p)?'SILICONFLOW_API_KEY':p.envKey]||'';}
+export async function providerSettings(workspace?:string):Promise<ProviderConfig[]>{const row=await first('SELECT data FROM settings WHERE id=?',workspace?`providers:${workspace}`:'providers');const saved=row?j(row.data):[];return DEFAULT_PROVIDERS.map(p=>({...p,...saved.find((v:ProviderConfig)=>v.id===p.id)}));}
+function keyFor(p:ProviderConfig,keys:Record<string,string>={}){const vars=env as unknown as Record<string,string>;if(keys[p.id])return keys[p.id];if(vars.LESSONBENCH_PUBLIC_MODE==='1')return '';return vars[isBAI(p)?'BAI_API_KEY':isSiliconFlow(p)?'SILICONFLOW_API_KEY':p.envKey]||'';}
 function packRun(r:any){return {...r,config:j(r.config)};}
 function packResult(r:any){return {...r,snapshot:j(r.snapshot),data:r.data?j(r.data):null,lease:undefined,lease_until:undefined};}
 export async function bootstrap(){
@@ -35,22 +35,29 @@ export async function bootstrap(){
  }
  await db().batch(commands);
 }
-export async function allCases(){return (await rows('SELECT data FROM cases ORDER BY id')).map(x=>j(x.data));}
+export async function allCases(workspace?:string){const all=(await rows('SELECT id,data FROM cases ORDER BY id'));if(!workspace)return all.map(x=>j(x.data));const owned=await rows("SELECT substr(id,11) as id FROM settings WHERE id LIKE 'caseowner:%' AND data=?",workspace);const allowed=new Set([...BENCHMARK,...EXTENSION].map(c=>c.id).concat(owned.map(x=>x.id)));return all.filter(x=>allowed.has(x.id)).map(x=>j(x.data));}
 export async function publicCases(){const allowed=new Set([...BENCHMARK,...EXTENSION].map(c=>c.id));return (await allCases()).filter(c=>allowed.has(c.id));}
+export async function ownsRun(id:string,workspace:string){return !!await first('SELECT id FROM settings WHERE id=? AND data=?',`runowner:${id}`,workspace);}
+export async function canReviewRun(id:string,workspace:string,token?:string){if(id===PUBLIC_RUN_ID||await ownsRun(id,workspace))return true;if(!token||!/^[a-f0-9-]{36}$/i.test(token))return false;return !!await first('SELECT id FROM settings WHERE id=? AND data=?',`reviewshare:${id}`,token);}
+export async function reviewShare(id:string,workspace:string){if(!await ownsRun(id,workspace))throw new HttpError(403,'该实验不属于当前浏览器工作区');const row=await first('SELECT data FROM settings WHERE id=?',`reviewshare:${id}`);if(!row)throw new HttpError(404,'盲评链接不可用');return {runId:id,token:row.data};}
+export async function reportShare(id:string,workspace:string){if(!await ownsRun(id,workspace))throw new HttpError(403,'该实验不属于当前浏览器工作区');const row=await first('SELECT data FROM settings WHERE id=?',`reportshare:${id}`);if(!row)throw new HttpError(404,'报告链接不可用');return {runId:id,token:row.data};}
+export async function canViewReport(id:string,token?:string){if(id===PUBLIC_RUN_ID)return true;if(!token||!/^[a-f0-9-]{36}$/i.test(token))return false;return !!await first('SELECT id FROM settings WHERE id=? AND data=?',`reportshare:${id}`,token);}
+export async function reviewAssignmentRun(id:string,reviewer:string){const row=await first('SELECT run_id FROM reviews WHERE id=? AND reviewer=?',id,reviewer);return row?.run_id as string|undefined;}
 export async function runDetail(id:string){const r=await first('SELECT * FROM runs WHERE id=?',id);if(!r)throw new HttpError(404,'评测不存在');const rs=(await rows('SELECT * FROM results WHERE run_id=? ORDER BY case_id,provider',id)).map(packResult);const reviews=await rows('SELECT * FROM reviews WHERE run_id=? AND submitted_at IS NOT NULL',id);return {run:packRun(r),results:rs,summary:summarize(packRun(r),rs,reviews),reviews:reviews.map(({reviewer,...x})=>({...x,ratings:j(x.ratings)}))};}
 const caseSchema=z.object({title:z.string().min(2).max(100),task:z.enum(['lesson','slides','exercise','feedback']),subject:z.string().min(1).max(30),grade:z.string().min(1).max(30),difficulty:z.enum(['基础','进阶','挑战']),prompt:z.string().min(15).max(12000),reference:z.string().min(5).max(8000),keywords:z.array(z.array(z.string().min(1).max(100)).min(1)).min(1).max(20),tags:z.array(z.string().max(30)).max(10).default([]),sectionCount:z.number().int().min(1).max(30),minutes:z.number().int().min(1).max(240).optional(),assessmentCount:z.number().int().min(1).max(20)});
-export async function addCases(input:any){const values=z.array(caseSchema).min(1).max(100).parse(input);const data=values.map(c=>({...c,id:`USR-${uid().slice(0,8)}`,version:`custom-${now().slice(0,10)}`,source:'用户导入；参考要点尚未经学科专家复核'}));await db().batch(data.map(c=>stmt('INSERT INTO cases(id,data,created_at) VALUES(?,?,?)',c.id,JSON.stringify(c),now())));return {created:data};}
-export async function saveProviders(input:any){const schema=z.array(z.object({id:z.enum(['deepseek','qwen','glm','openai']),model:z.string().regex(/^[a-zA-Z0-9._:/-]{1,100}$/),baseUrl:z.string().url(),inputPrice:z.number().min(0).max(100000).nullable(),cachePrice:z.number().min(0).max(100000).nullable(),outputPrice:z.number().min(0).max(100000).nullable(),priceDate:z.string().max(30)})).length(4);const values=schema.parse(input);if(new Set(values.map(x=>x.id)).size!==4)throw new HttpError(400,'厂商配置不能重复');const data=DEFAULT_PROVIDERS.map(p=>({...p,...values.find(x=>x.id===p.id)!}));if(data.some(p=>!validBase(p)))throw new HttpError(400,'Base URL 必须是厂商官方地址或硅基流动官方 API 地址');await stmt("INSERT INTO settings(id,data) VALUES('providers',?) ON CONFLICT(id) DO UPDATE SET data=excluded.data",JSON.stringify(data)).run();return {saved:true};}
-export async function testProvider(input:any){const p=(await providerSettings()).find(p=>p.id===input.provider);if(!p)throw new HttpError(400,'未知厂商');const record=await callProvider(p,keyFor(p,input.keys),[{role:'user',content:'只回复OK'}],{temperature:0.3,maxTokens:64});return {ok:true,model:record.model,latencyMs:record.latencyMs,usage:record.usage,estimatedCost:record.estimatedCost};}
-export async function createRun(input:any){
+export async function addCases(input:any,workspace?:string){const values=z.array(caseSchema).min(1).max(100).parse(input);const data=values.map(c=>({...c,id:`USR-${uid()}`,version:`custom-${now().slice(0,10)}`,source:'用户导入；参考要点尚未经学科专家复核'}));await db().batch(data.flatMap(c=>[stmt('INSERT INTO cases(id,data,created_at) VALUES(?,?,?)',c.id,JSON.stringify(c),now()),...(workspace?[stmt('INSERT INTO settings(id,data) VALUES(?,?)',`caseowner:${c.id}`,workspace)]:[])]));return {created:data};}
+export async function saveProviders(input:any,workspace?:string){const schema=z.array(z.object({id:z.enum(['deepseek','qwen','glm','openai']),model:z.string().regex(/^[a-zA-Z0-9._:/-]{1,100}$/),baseUrl:z.string().url(),inputPrice:z.number().min(0).max(100000).nullable(),cachePrice:z.number().min(0).max(100000).nullable(),outputPrice:z.number().min(0).max(100000).nullable(),priceDate:z.string().max(30)})).length(4);const values=schema.parse(input);if(new Set(values.map(x=>x.id)).size!==4)throw new HttpError(400,'厂商配置不能重复');const data=DEFAULT_PROVIDERS.map(p=>({...p,...values.find(x=>x.id===p.id)!}));if(data.some(p=>!validBase(p)))throw new HttpError(400,'Base URL 仅支持列出的官方接口和已列明的聚合平台');await stmt('INSERT INTO settings(id,data) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',workspace?`providers:${workspace}`:'providers',JSON.stringify(data)).run();return {saved:true};}
+export async function testProvider(input:any,workspace?:string){const p=(await providerSettings(workspace)).find(p=>p.id===input.provider);if(!p)throw new HttpError(400,'未知厂商');const record=await callProvider(p,keyFor(p,input.keys),[{role:'user',content:'只回复OK'}],{temperature:0.3,maxTokens:isBAI(p)?1024:256});return {ok:true,model:record.model,latencyMs:record.latencyMs,usage:record.usage,estimatedCost:record.estimatedCost};}
+export async function listBAIModels(input:any,workspace?:string){const p=(await providerSettings(workspace)).find(p=>p.id==='deepseek');if(!p||!isBAI(p))throw new HttpError(400,'请先启用并保存 B.AI 预设');const key=keyFor(p,input.keys);if(!key)throw new HttpError(400,'请先填写 B.AI API Key');let res:Response;try{res=await fetch('https://api.b.ai/v1/models',{headers:{Authorization:`Bearer ${key}`},redirect:'error',signal:AbortSignal.timeout(15000)});}catch{throw new HttpError(502,'无法连接 B.AI 模型列表');}if(!res.ok)throw new HttpError(res.status===401||res.status===403?401:502,`B.AI 模型列表请求失败（HTTP ${res.status}）`);const body:any=await res.json();const models=Array.isArray(body.data)?body.data.map((x:any)=>x?.id).filter((x:any)=>typeof x==='string'&&/^[a-zA-Z0-9._:/-]{1,100}$/.test(x)).slice(0,1000):[];return {models};}
+export async function createRun(input:any,workspace?:string){
  const v=z.object({name:z.string().trim().min(1).max(80),mode:z.enum(['demo','live']),caseIds:z.array(z.string()).min(1).max(100),providerIds:z.array(z.enum(['deepseek','qwen','glm','openai'])).min(2).max(4),temperature:z.number().min(0.01).max(0.99).default(0.3),maxTokens:z.number().int().min(256).max(8192).default(4096),judge:z.boolean().default(false),requestId:z.string().uuid()}).parse(input);
  if(new Set(v.caseIds).size!==v.caseIds.length||new Set(v.providerIds).size!==v.providerIds.length)throw new HttpError(400,'题目或厂商不能重复');
- const id=`run-${v.requestId}`;const existing=await first('SELECT id FROM runs WHERE id=?',id);if(existing)return {id};
- const dataset=(await allCases()).filter(c=>v.caseIds.includes(c.id));if(dataset.length!==v.caseIds.length)throw new HttpError(400,'存在无效题目');
- const providers=(await providerSettings()).filter(p=>v.providerIds.includes(p.id));
+ const id=`run-${v.requestId}`;const existing=await first('SELECT id FROM runs WHERE id=?',id);if(existing){if(workspace&&!await ownsRun(id,workspace))throw new HttpError(409,'实验编号已存在');return {id};}
+ const dataset=(await allCases(workspace)).filter(c=>v.caseIds.includes(c.id));if(dataset.length!==v.caseIds.length)throw new HttpError(400,'存在无效题目');
+ const providers=(await providerSettings(workspace)).filter(p=>v.providerIds.includes(p.id));
  if(v.mode==='live'){const missing=providers.filter(p=>!keyFor(p,input.keys));if(missing.length)throw new HttpError(400,`缺少 ${missing.map(x=>x.name).join('、')} API Key，请先在模型接入中配置`);}
  const config:RunConfig={caseIds:v.caseIds,providers,temperature:v.temperature,maxTokens:v.maxTokens,judge:v.mode==='live'&&v.judge,rubricVersion:RUBRIC_VERSION,benchmarkVersion:[...new Set(dataset.map(c=>c.version))].sort().join(' + '),concurrency:3};const date=now();
- const commands=[stmt('INSERT INTO runs(id,name,mode,status,config,dataset_hash,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',id,v.name,v.mode,'queued',JSON.stringify(config),await digest(dataset),date,date)];
+ const commands=[stmt('INSERT INTO runs(id,name,mode,status,config,dataset_hash,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',id,v.name,v.mode,'queued',JSON.stringify(config),await digest(dataset),date,date),...(workspace?[stmt('INSERT INTO settings(id,data) VALUES(?,?)',`runowner:${id}`,workspace),stmt('INSERT INTO settings(id,data) VALUES(?,?)',`reviewshare:${id}`,uid()),stmt('INSERT INTO settings(id,data) VALUES(?,?)',`reportshare:${id}`,uid())]:[])];
  for(const c of dataset)for(const p of providers)commands.push(stmt('INSERT INTO results(id,run_id,case_id,provider,status,snapshot,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',uid(),id,c.id,p.id,'queued',JSON.stringify(c),date,date));
  await db().batch(commands);return {id};
 }
@@ -102,12 +109,13 @@ export async function submitBlind(id:string,reviewer:string,input:any,runId?:str
  const v=z.object({vote:z.enum(['A','B','tie','both_bad']),ratings:z.object({A:scores,B:scores}),comment:z.string().trim().min(5).max(2000)}).parse(input);
  const result=runId?await stmt('UPDATE reviews SET vote=?,ratings=?,comment=?,submitted_at=? WHERE id=? AND reviewer=? AND submitted_at IS NULL AND run_id=?',v.vote,JSON.stringify(v.ratings),v.comment,now(),id,reviewer,runId).run():await stmt('UPDATE reviews SET vote=?,ratings=?,comment=?,submitted_at=? WHERE id=? AND reviewer=? AND submitted_at IS NULL',v.vote,JSON.stringify(v.ratings),v.comment,now(),id,reviewer).run();if(!result.meta.changes)throw new HttpError(409,'该任务已提交或不属于当前评审会话');return {saved:true};
 }
-export async function reviewRuns(reviewer:string){return rows("SELECT r.id,r.name,r.mode,COUNT(DISTINCT s.id) as ready,(SELECT COUNT(*) FROM reviews v WHERE v.run_id=r.id AND v.reviewer=? AND v.submitted_at IS NOT NULL) as reviewed FROM runs r JOIN results s ON s.run_id=r.id AND s.status='success' GROUP BY r.id ORDER BY r.created_at DESC",reviewer);}
+export async function reviewRuns(reviewer:string,workspace?:string,sharedRun?:string){const sql="SELECT r.id,r.name,r.mode,COUNT(DISTINCT s.id) as ready,(SELECT COUNT(*) FROM reviews v WHERE v.run_id=r.id AND v.reviewer=? AND v.submitted_at IS NOT NULL) as reviewed FROM runs r JOIN results s ON s.run_id=r.id AND s.status='success'";if(!workspace)return rows(sql+' GROUP BY r.id ORDER BY r.created_at DESC',reviewer);return rows(sql+" WHERE (r.id=? OR r.id=? OR EXISTS(SELECT 1 FROM settings owner WHERE owner.id='runowner:'||r.id AND owner.data=?)) GROUP BY r.id ORDER BY r.created_at DESC",reviewer,PUBLIC_RUN_ID,sharedRun||'',workspace);}
 
-export async function dashboard(){
- const runs=await rows('SELECT r.*,COUNT(s.id) as total,SUM(CASE WHEN s.status IN (\'success\',\'failed\',\'cancelled\') THEN 1 ELSE 0 END) as completed FROM runs r LEFT JOIN results s ON s.run_id=r.id GROUP BY r.id ORDER BY r.created_at DESC LIMIT 40');
- const providers=await providerSettings();
- return {cases:await allCases(),runs:runs.map(packRun),providers:providers.map(p=>({...p,configured:!!keyFor(p)})),latest:runs.length?await runDetail(runs[0].id):null};
+export async function dashboard(workspace?:string){
+ const sql="SELECT r.*,COUNT(s.id) as total,SUM(CASE WHEN s.status IN ('success','failed','cancelled') THEN 1 ELSE 0 END) as completed FROM runs r LEFT JOIN results s ON s.run_id=r.id";
+ const runs=workspace?await rows(sql+" WHERE r.id=? OR EXISTS(SELECT 1 FROM settings owner WHERE owner.id='runowner:'||r.id AND owner.data=?) GROUP BY r.id ORDER BY r.created_at DESC LIMIT 40",PUBLIC_RUN_ID,workspace):await rows(sql+' GROUP BY r.id ORDER BY r.created_at DESC LIMIT 40');
+ const providers=await providerSettings(workspace);
+ return {cases:await allCases(workspace),runs:runs.map(packRun),providers:providers.map(p=>({...p,configured:!!keyFor(p)})),latest:runs.length?(workspace&&runs[0].id===PUBLIC_RUN_ID?await publicRunDetail():await runDetail(runs[0].id)):null};
 }
 
 export async function publicRunDetail(){const detail=await runDetail(PUBLIC_RUN_ID);return {...detail,reviews:[]};}

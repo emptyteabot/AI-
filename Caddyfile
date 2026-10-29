@@ -1,0 +1,4 @@
+{$SITE_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy lessonbench:3000
+}

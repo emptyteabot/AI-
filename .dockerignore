@@ -1,0 +1,14 @@
+.git
+.next
+.vinext
+.wrangler
+.openai
+node_modules
+dist
+data
+outputs
+.dev.vars
+.env*
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

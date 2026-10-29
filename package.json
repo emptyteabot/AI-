@@ -17,7 +17,11 @@
     "test:integration": "node tests/integration.mjs",
     "setup:local": "node scripts/local-setup.mjs",
     "eval": "node scripts/evaluate.mjs",
-    "demo:report": "node --experimental-transform-types scripts/generate-demo.ts"
+    "demo:report": "node --experimental-transform-types scripts/generate-demo.ts",
+    "test:anonymous": "node tests/anonymous-integration.mjs",
+    "build:server": "next build --webpack",
+    "start:server": "next start -H 0.0.0.0 -p 3000",
+    "test:server": "node tests/server-integration.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

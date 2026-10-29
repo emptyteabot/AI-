@@ -1,0 +1,30 @@
+services:
+  lessonbench:
+    build: .
+    restart: unless-stopped
+    environment:
+      LESSONBENCH_PUBLIC_MODE: "1"
+      LESSONBENCH_DB_FILE: /data/lessonbench.sqlite
+    volumes:
+      - lessonbench_data:/data
+    expose:
+      - "3000"
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set SITE_DOMAIN to your public domain}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - lessonbench
+volumes:
+  lessonbench_data:
+  caddy_data:
+  caddy_config:

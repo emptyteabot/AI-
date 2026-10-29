@@ -16,13 +16,13 @@ npm run dev
 
 打开 `http://localhost:5173`。独立盲评页面为 `http://localhost:5173/review`。首次访问管理首页会幂等写入 24 条基础任务、8 条扩展任务与基于基础任务的演示实验。数据保存在 `.wrangler/state`，刷新与重启不会丢失；删除该目录才会清空本地数据。
 
-`setup:local` 完成生产构建并按序应用数据库迁移，不调用任何模型。默认只绑定本机。本地版未实现企业身份与角色管理，不应直接暴露给不可信网络。在线公开模式只向访客展示演示实验；真实实验、密钥配置与任务管理要求管理员通过托管平台身份登录。该权限机制依赖托管平台提供可信身份头，不可直接移植到无认证反向代理的服务器。
+`setup:local` 完成生产构建并按序应用数据库迁移，不调用任何模型。默认只绑定本机。在线公开模式无需登录：每个浏览器通过随机 HttpOnly Cookie 获得独立工作区，只能访问自己的配置、任务与实验；使用“分享盲评”或“分享报告”分别生成独立的访问链接。清除 Cookie 会失去工作区访问能力。该机制适合合成数据的 Demo，并非企业级账号认证，不应放入真实学生敏感信息。
 
 ## 真实三厂商评测
 
 1. 在“模型接入”填写各厂商标准 API Key，保持默认 Model ID，点击测试连接。测试会产生一次很小的请求。
 2. 保存模型配置。Key 只保存在页面内存，不写入浏览器本地存储或数据库；刷新或进入独立盲评页后需重新填写。
-3. “新建评测”选择“真实评测”，按需选择 24 条基础题或包含 8 条扩展题的全部 32 题，并选择至少三家模型来源（可选 OpenAI）。默认 temperature=0.3、max_tokens=4096，关闭思考。
+3. “新建评测”选择“真实评测”，按需选择 24 条基础题或包含 8 条扩展题的全部 32 题，并选择至少三家模型来源（可选 OpenAI）。默认 temperature=0.3、max_tokens=4096；各模型是否支持温度及推理模式不同，报告保留实际请求参数。
 4. 按需启用跨厂商模型裁判。24 题全量为 72 次生成之外最多 72 次计划裁判调用；32 题全量为 96 次生成之外最多 96 次计划裁判调用；网络/限流重试可能增加调用数。先小规模验证，再跑全量。
 5. 页面保持打开时自动调度。可暂停、继续和取消未执行任务；在途请求会完成并保留记录。刷新后点击“继续调度”。
 6. 在“人工盲评”分别完成评分、偏好与理由。建议至少两名学科教师独立标注。浏览器会话计数不代表已验证的真实人员。
@@ -37,7 +37,11 @@ npm run dev
 | 智谱 | glm-4.7 | ZAI_API_KEY | https://open.bigmodel.cn/api/paas/v4 |
 | OpenAI | gpt-6-luna | OPENAI_API_KEY | https://api.openai.com/v1 |
 
-OpenAI API 和 ChatGPT 对话分别使用账户/计费；当前对话不能作为批量调用的 API。OpenAI 预设模型与当前会话模型不保证相同。接口文档核对日期：2026-10-28。阿里支持对应地域的 WorkspaceId 专属域名。Key 与地域需要匹配。GLM 5.3 强制思考，不适用于本实验默认非思考协议；智谱标准 API Key 与 Coding Plan Key 不应混用。模型与价格会变化，正式运行前先测试连接。
+当前 OpenAI 接入使用标准 API Key；当前对话不能直接当作批量调用 API。某些符合条件的开源/本地应用可经额外授权使用 ChatGPT 计划，本项目尚未实现该方式。阿里密钥须与地域匹配，智谱标准 API Key 与 Coding Plan Key 不应混用。B.AI 的 DeepSeek 和 GLM 预设请求 low 推理，Qwen 推理行为以平台为准；模型、参数支持与价格会变化，请先测试连接。
+
+## B.AI 低成本接入
+
+在“模型接入”点击“使用 B.AI 预设”，输入一个 B.AI Key 后可读取账户可用模型列表，再分别测试连接。候选模型为 `DeepSeek-V4.1-Flash`、`qwen3.8-flash`、`glm-5.3-flashx`；实际 ID、可用性、费用以 B.AI 账户与用量页面为准。B.AI 是一家聚合接口服务，报告需区分模型开发来源和实际 API 提供者。GLM-5.3-FlashX 不支持关闭思考；不同模型的推理和温度参数可能不同，不应描述为严格同一推理配置。平台发票、余额和大陆网络连通性未验证。CLI 可在本地使用 `BAI_API_KEY`。
 
 ## 硅基流动低成本接入
 
@@ -67,7 +71,7 @@ npm run eval -- --url http://localhost:5173 --run <run-id>
 npm run eval -- --url http://localhost:5173 --run <run-id> --live
 ```
 
-`--max-calls` 限制计划生成与裁判调用数，不是金额预算，也不包含重试。CLI 默认不打印密钥或模型原始回答。结果默认写到 `outputs/evaluation/`。公开站点的管理员操作依赖站点登录，CLI 不支持该站点的管理员身份传递；无人值守请使用本地服务。终端中断可用 `--run` 继续；超时租约会标记为结果未知，不自动重复计费。
+`--max-calls` 限制计划生成与裁判调用数，不是金额预算，也不包含重试。CLI 默认不打印密钥或模型原始回答。结果默认写到 `outputs/evaluation/`。公开站点通过浏览器 Cookie 隔离工作区，当前 CLI 不持久化该 Cookie；无人值守请使用本地服务。终端中断可用 `--run` 继续；超时租约会标记为结果未知，不自动重复计费。
 
 ## Benchmark 与评分
 
@@ -91,7 +95,7 @@ npm run eval -- --url http://localhost:5173 --run <run-id> --live
 
 报告分开显示规则合规、模型裁判、人工偏好。人工胜率分母为胜+负，平局与双差另列。规则全通过率与人工胜率提供Wilson 95%区间，仅作小样本描述。机人一致率只计算人工明确选A/B、双方裁判有效且分数不同的组合；没有有效样本时为空。样本来自相同题目，正式统计需要按Query聚类或配对bootstrap，不能把所有投票当独立观测。
 
-当前盲评基于浏览器会话去重，管理员仍可访问完整结果；它是流程层面的盲评 Demo，没有企业级角色权限隔离，不应声称已经消除所有来源泄漏途径。
+当前盲评基于浏览器会话去重。创建者可将仅授权匿名盲评的链接发给评审者；只读报告使用另一链接，可查看聚合结果和模型来源。链接持有者可以转发链接；这不是企业级身份与角色权限管理。
 
 ## 架构
 
@@ -113,6 +117,18 @@ flowchart TD
 
 费用由操作者填写CNY/百万Token单价、缓存价格和日期。缺失价格、usage、存在失败或重试计费不确定时显示未知。平台不伪造发票；从实际付费供应商账号申请账单与发票。
 
+## 自有服务器部署
+
+仓库提供 Node 24 + SQLite 生产运行方式及 `Dockerfile`、`compose.yaml`、`Caddyfile`。Node 构建和 SQLite 会话隔离已在 Linux 本地测试；Docker 构建、实际域名和中国大陆网络尚未验证。
+
+```bash
+npx pnpm@11.25.0 install --frozen-lockfile
+npm run build:server
+LESSONBENCH_PUBLIC_MODE=1 LESSONBENCH_DB_FILE=/var/lib/lessonbench/lessonbench.sqlite npm run start:server
+```
+
+生产环境应通过 HTTPS 反向代理，不要将输入 API Key 的页面直接暴露在明文 HTTP。Docker Compose 可在设置 `SITE_DOMAIN` 并将域名解析至服务器后使用 `docker compose up -d --build`；中国大陆服务器面向公众提供网站前需按适用规定完成域名备案。数据保存在 Docker 卷 `lessonbench_data`，应自行备份。容器没有内置共享 API Key，访客使用自己的 Key。
+
 ## 验证
 
 ```bash
@@ -120,6 +136,10 @@ npm run typecheck
 npm test
 npm run build
 npm run demo:report
+# 先 build，再验证公开模式会话和分享隔离
+npm run test:anonymous
+# 先 build:server，再验证 Node + SQLite 模式
+npm run test:server
 # 本机运行 dev 后，可执行HTTP集成测试；仅允许本地URL
 LESSONBENCH_URL=http://localhost:5173 npm run test:integration
 ```
@@ -144,6 +164,7 @@ Windows PowerShell 设置变量：`$env:LESSONBENCH_URL='http://localhost:5173'`
 - CJEval educational task design: https://arxiv.org/abs/2409.16202
 - MiniAppBench interactive evaluation: https://arxiv.org/abs/2603.09652
 - ArtifactsBench visual-interactive evaluation: https://arxiv.org/abs/2507.04952
+- B.AI API: https://docs.b.ai/zh-Hans/llmservice/api/
 - 硅基流动 API: https://docs.siliconflow.cn/
 - OpenAI API 模型: https://developers.openai.com/api/docs/models/gpt-6-luna
 - DeepSeek API: https://api-docs.deepseek.com/
