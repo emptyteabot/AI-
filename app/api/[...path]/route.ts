@@ -46,7 +46,7 @@ async function handle(request:Request){
     if(path[2]==='report'){
      const format=url.searchParams.get('format')||'md';let text:string,type:string;
      if(format==='json'){text=JSON.stringify(detail,null,2);type='application/json';}
-     else if(format==='csv'){const escape=(v:any)=>{let t=String(v??'');if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};const table=[['case_id','provider','source','status','rule_score','judge_score','latency_ms','total_tokens','estimated_cost_cny','error'],...detail.results.map((r:any)=>[r.case_id,r.provider,r.data?.source,r.status,r.data?.rules.score,r.data?.judge?.score,r.data?.record?.latencyMs,r.data?.record?.usage?.total_tokens,r.data?.record?.estimatedCost,r.error||r.data?.judgeError])];text='\ufeff'+table.map(row=>row.map(escape).join(',')).join('\r\n');type='text/csv';}
+     else if(format==='csv'){const escape=(v:any)=>{let t=String(v??'');if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};const table=[['case_id','provider','source','status','rule_score','judge_score','latency_ms','total_tokens','estimated_cost_cny','error'],...detail.results.map((r:any)=>[r.case_id,r.provider,r.data?.source,r.status,r.data?.rules?.score,r.data?.judge?.score,r.data?.record?.latencyMs,r.data?.record?.usage?.total_tokens,r.data?.record?.estimatedCost,r.error||r.data?.judgeError])];text='\ufeff'+table.map(row=>row.map(escape).join(',')).join('\r\n');type='text/csv';}
      else{text=s.reportMarkdown(detail);type='text/markdown';}
      return new Response(text,{headers:{...headers,'Content-Type':type+'; charset=utf-8','Content-Disposition':`attachment; filename="LessonBench-${detail.run.mode}-${path[1]}.${['json','csv'].includes(format)?format:'md'}"`}});
     }

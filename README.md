@@ -4,7 +4,9 @@
 
 **交付状态：平台 Demo 可运行；内置 72 条人工编写的演示样例与一组真实 API 评测。真实实验为 12 道精简题 × 4 个模型通道，计划 48 条生成、成功 45 条、失败 3 条；28 条有有效模型裁判，16 条裁判失败，1 条生成截断未裁判。人工盲评 0 组。所有调用经第三方 OriginCoder，模型身份由平台标识，不能独立核验。小样本及裁判缺失不宜用于厂商排名。**
 
-在线演示：[课衡工作台](https://lessonbench-studio.emptytea1.chatgpt.site/) · [真实评测报告](https://lessonbench-studio.emptytea1.chatgpt.site/share?run=origin-real-v2) · [人工盲评](https://lessonbench-studio.emptytea1.chatgpt.site/review?run=origin-real-v2)。无需登录；中国大陆访问尚未独立验证。
+在线演示：[免登录静态备用站](https://lessonbench-80b5043b86.deed.page/) · [课衡完整工作台](https://lessonbench-studio.emptytea1.chatgpt.site/) · [真实评测报告](https://lessonbench-studio.emptytea1.chatgpt.site/share?run=origin-real-v2) · [人工盲评](https://lessonbench-studio.emptytea1.chatgpt.site/review?run=origin-real-v2)。2026-10-29 多地 HTTP 拨测：备用站多数节点返回 200，完整工作台多数大陆节点返回 403；网络状况会变化，建议国内先访问备用站。
+
+独立外部教师评审参考集：PATS 原研究中 4 位教师对 40 组模型模拟教学对话进行了 120 条成对评审（每组 3 条）。五维原始判断与来源说明见 `docs/Teacher_Data.md`；这些评价并非针对本项目的 45 条输出，也不应与本项目人评计数混合。
 
 无需服务器的离线备用页为 `public/fallback/index.html`，可下载后直接打开，也可发布到静态托管。备用页可阅读报告、运行规则检查及在本机浏览器记录盲评并导出；它不调用模型 API，也不汇总其他浏览器的投票。在线工作台提供完整服务端功能。
 
@@ -166,6 +168,7 @@ Windows PowerShell 设置变量：`$env:LESSONBENCH_URL='http://localhost:5173'`
 - `scripts/evaluate.mjs`：无人值守评测驱动。
 - `docs/evidence/`：明确标注的演示评分与完整样例。
 - `docs/Workflow.md`：评测流程、演示顺序与真实实验补齐要求。
+- `docs/Teacher_Data.md`、`docs/evidence/PATS_Expert_Comparisons.json`：来源可核验的外部教师评审参考及去标识化数据，保留源 ID 便于复核，可能关联回公开原始数据。
 - `docs/Interview_Submission.md`：可直接用于提交和答辩的项目说明。
 
 ## 参考资料
